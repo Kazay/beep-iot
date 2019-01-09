@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 import RPi.GPIO as GPIO
 
-class Led:
+class Transistor:
 	def __init__(self, pin):
 		self.pin = pin
 		GPIO.setmode(GPIO.BOARD) 
