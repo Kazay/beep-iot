@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 ########################################################################
-# Filename    : RFID.py
-# Description : Use MFRC522 read and write Mifare Card.
-# auther      : www.freenove.com
-# modification: 2018/09/08
+# Filename    : Auth.py
+# Description : Script handling raspberry
+# author      : Kevin Czaja
+# modification: 2019/01/09
 ########################################################################
 import RPi.GPIO as GPIO
+from Handle_GPIO import Handle_GPIO
 import MFRC522
-from Led import Led
-from Transistor import Transistor
 import sys
 import os
 import json
@@ -18,39 +17,94 @@ from pprint import pprint
 from LCD_display import LCD_display
 from Sonar import Sonar
 
-transistorRFID = Transistor(11)
-transistorLCD = Transistor(12)
-transistorLCDBIS = Transistor(40)
-ledAuthorized = Led(13)
-ledDenied = Led(15)
+# GPIO handler for RFID transistor
+transistor_RFID = handle_GPIO(11)
+# GPIO handler for 1st LCD display transistor
+transistor_LCD = handle_GPIO(12)
+# GPIO handler for 2nd LCD display transistor
+transistor_LCD_ground = handle_GPIO(40)
+# GPIO handler for green LED
+ledAuthorized = handle_GPIO(13)
+# GPIO handler for red led
+ledDenied = handle_GPIO(15)
+# GPIO handler for ultrasonic range device
 sonar = Sonar(16, 18, 300)
-
 # Create an object of the class MFRC522
 mfrc = MFRC522.MFRC522()
 
+# Trigger Ultrasonic Range
+# If distance < 30
+	# Turn transistors pin ON
+	# Clean display & display current datetime (default display)
+	# Until a card is detected
+		# If distance >= 30
+			# Turn transistors pin OFF
+			# Break
+		# Scan RFID card (timeout 60s)
+		# Call API to check credentials
+		# if card UID is recognized
+			# Turn ON green led
+			# Display user information on LCD screen
+		# else
+			# Turn ON red led
+			# Display error
+
+if __name__ == "__main__":
+	try:
+		components_active()
+		#components_idle()
+		while(True):
+			time.sleep(2)
+			distance = sonar.getSonar()
+			print ("The distance is : %.2f cm"%(distance))
+			if distance < 30:
+				#components_active()
+				lcd = LCD_display()
+				while(True):
+					reset()
+					distance = sonar.getSonar()
+					if distance > 30:
+						#components_idle()
+						break
+					uid = scan()
+					user = retrieve_json(uid)
+					if user['idRFID'] == uid:
+						ledAuthorized.on()
+						#send_records(user[_id])
+						lcd.display_authorized(user)
+
+					else:
+						ledDenied.on()
+						lcd.display_denied()
+					time.sleep(1)
+	except KeyboardInterrupt:  # Ctrl+C captured, exit
+		destroy()
+ 
+
 def components_idle():
-	transistorLCD.off()
-	transistorLCDBIS.off()
-	transistorRFID.off()
+	transistor_LCD.off()
+	transistor_LCD_ground.off()
+	transistor_RFID.off()
 	
 def components_active():
-	transistorLCD.on()
-	transistorLCDBIS.on()
-	transistorRFID.on()
+	transistor_LCD.on()
+	transistor_LCDBIS_ground.on()
+	transistor_RFID.on()
 
-def retrieve_json():
+def retrieve_json(uid):
+	userInfos = ""
 	# TO DO: API call to retrieve
-	userInfos = {
-				'_id': 1, 'firstName' : 'Uvuvuwewe',
-				'lastName' : 'Czaja',
-				'mail' : 'czajakevin@gmail.com',
-				'dateOfBirth' : '09-26-1988',
-				'idRFID': [1, 82, 76, 115, 108]
-				}
-				
-	#userInfos = json.loads(jsonTest)
-	
+	response = requests.get("http://ebcitakademy.alwaysdata.net/users/uid/%"%uid)
+	if(response.status_code == 200):
+		userInfos = response.data
+		#userInfos = json.loads(jsonTest)
 	return userInfos
+
+def send_records(idUser):
+	# Store current datetime
+	# build JSON
+	# API post request
+	# return response
 
 def scan():
 	timeout = time.time() + 60
@@ -81,34 +135,4 @@ def reset():
 	ledDenied.off()
 	lcd.lcd_clear()
 	lcd.display_date()
-	
-if __name__ == "__main__":
-	try:
-		components_active()
-		#components_idle()
-		while(True):
-			time.sleep(2)
-			distance = sonar.getSonar()
-			print ("The distance is : %.2f cm"%(distance))
-			if distance < 30:
-				#components_active()
-				lcd = LCD_display()
-				while(True):
-					reset()
-					distance = sonar.getSonar()
-					if distance > 30:
-						 #components_idle()
-						break
-					uid = scan()
-					user = retrieve_json()
-					if user['idRFID'] == uid:
-						ledAuthorized.on()
-						lcd.display_authorized(user)
-					else:
-						ledDenied.on()
-						lcd.display_denied()
-					time.sleep(1)
-	except KeyboardInterrupt:  # Ctrl+C captured, exit
-		destroy()
- 
 	
