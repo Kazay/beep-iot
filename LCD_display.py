@@ -10,11 +10,12 @@ class LCD_display(lcd):
 
         def display_authorized(self, user):
                 lcd.lcd_clear(self)
-                datas = ['Hi, ' + user['firstName'][0] + '. ' + user['lastName'],
+                pprint(user)
+                datas = ['Hi, ' + user[0]['firstname'][0] + '. ' + user[0]['lastname'],
                         'Javascript week 1',
                         'Sonic room']
                 for data in datas:
-                        self.display_date()
+                        self.display_date(1)
                         self.display_scrolling(data, 2)
                         sleep(2) # 2 sec delay
                         lcd.lcd_clear(self)
@@ -25,16 +26,16 @@ class LCD_display(lcd):
                 lcd.lcd_display_string(self, 'Access denied', 2)
                 sleep(1) # 1 sec delay
                 
-        def display_date(self):
+        def display_date(self, pos):
                 currentDate = datetime.datetime.now()
-                lcd.lcd_display_string(self, currentDate.strftime('%d-%m-%y') + '   ' + currentDate.strftime('%H:%M'), 1)
+                lcd.lcd_display_string(self, currentDate.strftime('%d-%m-%y') + '   ' + currentDate.strftime('%H:%M'), pos)
                 
-        def display_scrolling(self, string, line):
+        def display_scrolling(self, string, pos):
                 i = 0
                 if len(string) > 16:
                         while i < (len(string) - 15):         
-                                lcd.lcd_display_string(self, string[i:] , line)
+                                lcd.lcd_display_string(self, string[i:] , pos)
                                 sleep(0.5)
                                 i += 1
                 else:
-                        lcd.lcd_display_string(self, string, line)  
+                        lcd.lcd_display_string(self, string, pos)  
