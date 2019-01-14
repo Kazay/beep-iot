@@ -22,7 +22,7 @@ class LCD_display(lcd):
                 
         def display_denied(self):
                 lcd.lcd_clear(self)
-                self.display_date()
+                self.display_date(1)
                 lcd.lcd_display_string(self, 'Access denied', 2)
                 sleep(1) # 1 sec delay
                 

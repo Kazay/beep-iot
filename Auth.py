@@ -28,41 +28,22 @@ def components_active():
 	transistor_LCD_ground.on()
 	transistor_RFID.on()
 
-def retrieve_json(uid):
-	userInfos = ""
-	# TO DO: API call to retrieve
-	response = requests.get("http://ebcitakademy.alwaysdata.net/users/uid/%"%uid)
-	if(response.status_code == 200):
-		userInfos = response.data
-		#userInfos = json.loads(jsonTest)
-	return userInfos
-
-#def send_records(idUser):
-	# Store current datetime
-	# build JSON
-	# API post request
-	# return response
-
 def scan():
 	timeout = time.time() + 60
 	while (True):
-		lcd.display_date()
-		time.sleep(.5)
+		lcd.display_date(1)
+		#time.sleep(.5)
 		# Scan for cards  
-		pprint('Scan for cards')
 		(status,TagType) = mfrc.MFRC522_Request(mfrc.PICC_REQIDL)
+		pprint('Scan for card')
 		# If a card is found
 		if status == mfrc.MI_OK:
 			print ("Card detected")
 			# Get the UID of the card
-			(status,uid) = mfrc.MFRC522_Anticoll()
-			pprint(uid)
-			pprint(status)			
-			# If we have the UID, continue
-			if status == mfrc.MI_OK:
-				# Select the scanned tag
-				if mfrc.MFRC522_SelectTag(uid) == 0:
-					print ("MFRC522_SelectTag Failed!")
+			(status,uid) = mfrc.MFRC522_Anticoll()		
+			# Select the scanned tag
+			if mfrc.MFRC522_SelectTag(uid) == 0:
+				print ("MFRC522_SelectTag Failed!")
 			return uid
 		if time.time() > timeout:
 			break
@@ -74,24 +55,7 @@ def reset():
 	ledAuthorized.off()
 	ledDenied.off()
 	lcd.lcd_clear()
-	lcd.display_date()
-
-# Trigger Ultrasonic Range
-# If distance < 30
-	# Turn transistors pin ON
-	# Clean display & display current datetime (default display)
-	# Until a card is detected
-		# If distance >= 30
-			# Turn transistors pin OFF
-			# Break
-		# Scan RFID card (timeout 60s)
-		# Call API to check credentials
-		# if card UID is recognized
-			# Turn ON green led
-			# Display user information on LCD screen
-		# else
-			# Turn ON red led
-			# Display error
+	lcd.display_date(1)
 
 if __name__ == "__main__":
 	try:
@@ -101,6 +65,7 @@ if __name__ == "__main__":
 		transistor_LCD = Handle_GPIO(12)
 		# GPIO handler for 2nd LCD display transistor
 		transistor_LCD_ground = Handle_GPIO(40)
+		components_active()
 		# GPIO handler for green LED
 		ledAuthorized = Handle_GPIO(13)
 		# GPIO handler for red led
