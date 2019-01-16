@@ -7,7 +7,6 @@ class Handle_GPIO:
 		self.pin = pin
 		GPIO.setmode(GPIO.BOARD) 
 		GPIO.setup(self.pin,GPIO.OUT)
-		self.off()
 		
 	def on(self):
 		GPIO.output(self.pin,GPIO.HIGH)

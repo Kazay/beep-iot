@@ -11,9 +11,11 @@ class LCD_display(lcd):
         def display_authorized(self, user):
                 lcd.lcd_clear(self)
                 pprint(user)
-                datas = ['Hi, ' + user[0]['firstname'][0] + '. ' + user[0]['lastname'],
-                        'Javascript week 1',
-                        'Sonic room']
+                datas = ['Hi, ' + user['firstname'][0] + '. ' + user['lastname']]
+                if(user['course'] != ''):
+                        datas.insert(len(datas) + 1, user['course'])
+                if(user['room'] != ''):
+                        datas.insert(len(datas) + 1, 'Salle ' + user['room'])
                 for data in datas:
                         self.display_date(1)
                         self.display_scrolling(data, 2)

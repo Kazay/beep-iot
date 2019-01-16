@@ -15,24 +15,7 @@ transistor_RFID = Handle_GPIO(11)
 mfrc = MFRC522.MFRC522()
 api = API_Requests()
 display = tkinter.Tk()
-
-def assignCallBack(userid):
-	transistor_RFID = Handle_GPIO(11)
-	transistor_RFID.on()
-	mfrc = MFRC522.MFRC522()
-	tkinter.messagebox.showinfo("Assign RFID", "Assign RFID Card")
-	uid = scan()
-	api.update_rfid(userid, uid)
-	display_table()
-
-def deleteCallBack(userid):
-	transistor_RFID = Handle_GPIO(11)
-	transistor_RFID.on()
-	mfrc = MFRC522.MFRC522()
-	tkinter.messagebox.showinfo("Delete RFID", "Delete RFID Card assigned")
-	api.update_rfid(userid, '')
-	
-	display_table()
+display.title('Beep bulk edit')
 	
 def scan():
 	while (True):
@@ -51,26 +34,46 @@ def scan():
 				if mfrc.MFRC522_SelectTag(uid) == 0:
 					print ("MFRC522_SelectTag Failed!")
 			return uid
-			
-def display_table():
-	users = api.get_all_users()
-	height = len(users)
-	width = 4
-	for i in range(height): #Rows
-		for j in range(width): #Columns
-			label_lastname = tkinter.Label(display, text=users['list_of_users'][i]['lastname']).grid(row=i, column=0)
-			label_firstname = tkinter.Label(display, text=users['list_of_users'][i]['firstname']).grid(row=i, column=1)
-			label_rfid = tkinter.Label(display, text=users['list_of_users'][i]['rfid']).grid(row=i, column=2)
-			button_assign = tkinter.Button(display, text ="Assign RFID", command = partial(assignCallBack,users['list_of_users'][i]['_id'])).grid(row=i, column=3)
-			button_delete = tkinter.Button(display, text ="Delete RFID", command = partial(deleteCallBack,users['list_of_users'][i]['_id'])).grid(row=i, column=4)
-	display.mainloop()
+	
+def assignCallBack(userid, i):
+	transistor_RFID = Handle_GPIO(11)
+	transistor_RFID.on()
+	mfrc = MFRC522.MFRC522()
+	tkinter.messagebox.showinfo("Assign RFID", "Assign RFID Card")
+	uid = scan()
+	api.update_rfid(userid, uid)
+	label_rfid[i].configure(text=uid)
+
+def deleteCallBack(userid, i):
+	transistor_RFID = Handle_GPIO(11)
+	transistor_RFID.on()
+	mfrc = MFRC522.MFRC522()
+	tkinter.messagebox.showinfo("Delete RFID", "Delete RFID Card assigned")
+	api.update_rfid(userid, '')
+	label_rfid[i].configure(text='')
 
 def destroy():
 	GPIO.cleanup()
 
 if __name__ == "__main__":
 	try:
-		display_table()
+		label_lastname = []
+		label_firstname = []
+		label_rfid = []
+		button_assign = []
+		button_delete = []
+		users = api.get_all_users()
+		height = len(users['list_of_users'])
+		for i in range(height): #Rows
+			label_lastname.append(tkinter.Label(display, text=users['list_of_users'][i]['lastname']))
+			label_lastname[i].grid(row=i, column=0)
+			label_firstname.append(tkinter.Label(display, text=users['list_of_users'][i]['firstname']))
+			label_firstname[i].grid(row=i, column=1)
+			label_rfid.append(tkinter.Label(display, text=users['list_of_users'][i]['rfid']))
+			label_rfid[i].grid(row=i, column=2)
+			button_assign.append(tkinter.Button(display, text ="Assign RFID", command = partial(assignCallBack,users['list_of_users'][i]['_id'],i)).grid(row=i, column=3))
+			button_delete.append(tkinter.Button(display, text ="Delete RFID", command = partial(deleteCallBack,users['list_of_users'][i]['_id'],i)).grid(row=i, column=4))
+		display.mainloop()
 		
 	except KeyboardInterrupt:  # Ctrl+C captured, exit
 		destroy()

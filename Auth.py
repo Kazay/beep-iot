@@ -29,18 +29,20 @@ def components_active():
 	transistor_RFID.on()
 
 def scan():
-	timeout = time.time() + 60
+	timeout = time.time() + 20
 	while (True):
 		lcd.display_date(1)
-		#time.sleep(.5)
+		time.sleep(.5)
 		# Scan for cards  
 		(status,TagType) = mfrc.MFRC522_Request(mfrc.PICC_REQIDL)
 		pprint('Scan for card')
+		pprint(status)
 		# If a card is found
 		if status == mfrc.MI_OK:
 			print ("Card detected")
 			# Get the UID of the card
 			(status,uid) = mfrc.MFRC522_Anticoll()		
+			pprint(uid)
 			# Select the scanned tag
 			if mfrc.MFRC522_SelectTag(uid) == 0:
 				print ("MFRC522_SelectTag Failed!")
@@ -65,7 +67,6 @@ if __name__ == "__main__":
 		transistor_LCD = Handle_GPIO(12)
 		# GPIO handler for 2nd LCD display transistor
 		transistor_LCD_ground = Handle_GPIO(40)
-		components_active()
 		# GPIO handler for green LED
 		ledAuthorized = Handle_GPIO(13)
 		# GPIO handler for red led
@@ -75,7 +76,6 @@ if __name__ == "__main__":
 		# Create an object of the class MFRC522
 		mfrc = MFRC522.MFRC522()
 		
-		components_active()
 		api = API_Requests()
 		lcd = LCD_display()
 		components_idle()
@@ -92,15 +92,15 @@ if __name__ == "__main__":
 						components_idle()
 						break
 					uid = scan()
-					user = api.get_user(uid)
-					if user['message'] == 'SUCCESS':
-						ledAuthorized.on()
-						#send_records(user[_id])
-						pprint(user)
-						lcd.display_authorized(user['data'])
-					else:
-						ledDenied.on()
-						lcd.display_denied()
+					if(uid != None):
+						data = api.user_authentication(uid)
+						if 'authorized' in data and data['authorized'] == True:
+							ledAuthorized.on()
+							lcd.display_authorized(data)
+						else:
+							ledDenied.on()
+							lcd.display_denied()
+						del data
 					time.sleep(2)
 	except KeyboardInterrupt:  # Ctrl+C captured, exit
 		destroy()
