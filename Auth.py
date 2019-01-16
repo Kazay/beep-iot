@@ -30,24 +30,25 @@ def components_active():
 
 def scan():
 	timeout = time.time() + 20
+	pprint('Scan your card')
 	while (True):
 		lcd.display_date(1)
 		time.sleep(.5)
 		# Scan for cards  
 		(status,TagType) = mfrc.MFRC522_Request(mfrc.PICC_REQIDL)
-		pprint('Scan for card')
-		pprint(status)
 		# If a card is found
 		if status == mfrc.MI_OK:
 			print ("Card detected")
 			# Get the UID of the card
 			(status,uid) = mfrc.MFRC522_Anticoll()		
-			pprint(uid)
-			# Select the scanned tag
-			if mfrc.MFRC522_SelectTag(uid) == 0:
-				print ("MFRC522_SelectTag Failed!")
-			return uid
+			# If we have the UID, continue
+			if status == mfrc.MI_OK:
+				# Select the scanned tag
+				if mfrc.MFRC522_SelectTag(uid) == 0:
+					print ("MFRC522_SelectTag Failed!")
+				return uid
 		if time.time() > timeout:
+			pprint('Timeout')
 			break
 	
 def destroy():
@@ -71,6 +72,7 @@ if __name__ == "__main__":
 		ledAuthorized = Handle_GPIO(13)
 		# GPIO handler for red led
 		ledDenied = Handle_GPIO(15)
+		components_active()
 		# GPIO handler for ultrasonic range device
 		sonar = Sonar(16, 18, 300)
 		# Create an object of the class MFRC522
@@ -83,12 +85,12 @@ if __name__ == "__main__":
 			time.sleep(2)
 			distance = sonar.getSonar()
 			print ("The distance is : %.2f cm"%(distance))
-			if distance < 30:
+			if distance < 50:
 				components_active()
 				while(True):
 					reset()
 					distance = sonar.getSonar()
-					if distance > 30:
+					if distance > 50 :
 						components_idle()
 						break
 					uid = scan()

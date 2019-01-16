@@ -28,6 +28,8 @@ class API_Requests:
 	def update_rfid(self, userid, uid):
 		payload = {'id': userid}
 		r = requests.put('http://vps.quentinmodena.fr:2999/users/update', params = payload, data = {'rfid':uid})
+		data = r.json()
+		return data
 	
 	def get_all_users(self):
 		r = requests.get('http://vps.quentinmodena.fr:2999/users/all')
