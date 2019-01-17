@@ -21,12 +21,10 @@ from Sonar import Sonar
 def components_idle():
 	transistor_LCD.off()
 	transistor_LCD_ground.off()
-	transistor_RFID.off()
 	
 def components_active():
 	transistor_LCD.on()
 	transistor_LCD_ground.on()
-	transistor_RFID.on()
 
 def scan():
 	timeout = time.time() + 20
@@ -62,8 +60,6 @@ def reset():
 
 if __name__ == "__main__":
 	try:
-		# GPIO handler for RFID transistor
-		transistor_RFID = Handle_GPIO(11)
 		# GPIO handler for 1st LCD display transistor
 		transistor_LCD = Handle_GPIO(12)
 		# GPIO handler for 2nd LCD display transistor
@@ -77,10 +73,9 @@ if __name__ == "__main__":
 		sonar = Sonar(16, 18, 300)
 		# Create an object of the class MFRC522
 		mfrc = MFRC522.MFRC522()
-		
 		api = API_Requests()
 		lcd = LCD_display()
-		components_idle()
+		#components_idle()
 		while(True):
 			time.sleep(2)
 			distance = sonar.getSonar()

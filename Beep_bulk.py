@@ -6,6 +6,7 @@
 # modification: 2019/01/12
 ########################################################################
 import tkinter as tk
+import tkinter.messagebox
 import time
 import MFRC522
 import RPi.GPIO as GPIO
@@ -71,19 +72,23 @@ def assignCallBack(userid, i):
     mfrc = MFRC522.MFRC522()
     uid = scan()
     r = api.update_rfid(userid, uid)
-    if(hasattr(r, 'dupe')):
-        pprint(r.dupe)
-        if(r.dupe == False):
+    pprint(r)
+    if(r['code'] == 500):
+        tk.messagebox.showinfo("Error", "Request failed, please check your connection and retry.")
+    elif(r['code'] == 200):
+        if(r['dupe'] == False):
             label_rfid[i].configure(text=uid)
         else:
             tk.messagebox.showinfo("Error", "Card is already assigned to another user.")
 
 def deleteCallBack(userid, i):
-	transistor_RFID = Handle_GPIO(11)
-	transistor_RFID.on()
-	mfrc = MFRC522.MFRC522()
-	api.update_rfid(userid, '')
-	label_rfid[i].configure(text='No RFID card')
+    transistor_RFID = Handle_GPIO(11)
+    transistor_RFID.on()
+    mfrc = MFRC522.MFRC522()
+    r = api.update_rfid(userid, '')
+    pprint(r)
+    label_rfid[i].configure(text='No RFID card')
+
 
 label_lastname = []
 label_firstname = []
